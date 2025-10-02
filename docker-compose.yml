@@ -1,0 +1,39 @@
+services:
+  backend:
+    build: ./userapi
+    container_name: factored-api
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=docker
+      - DATABASE_URL=postgresql://user:password@db:5432/employees
+      - SECRET_KEY=b50805215c3f875e968c2c7cac70f47d6994772134847feca779babeee297322
+    depends_on:
+      db:
+        condition: service_started
+    restart: unless-stopped
+  
+  frontend:
+    build: ./employee-portal
+    container_name: employee-portal
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:15
+    container_name: factored-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: employees
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  db-data:
